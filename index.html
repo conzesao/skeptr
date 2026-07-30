@@ -184,7 +184,7 @@
 
   <footer class="wrap">
     <span>Skeptr — an independent check on AI answers.</span>
-    <a id="switchLink">See the other version</a>
+    <a id="switchLink" style="display:none">See the other version</a>
   </footer>
 
   <div class="admin" id="admin" title="Click to export collected signups">▤ signups: <span id="count">0</span></div>
@@ -244,10 +244,13 @@ document.getElementById('points').innerHTML = data.points.map(p=>`
   <div class="point"><div class="num">${p[0]}</div><h3>${p[1]}</h3><p>${p[2]}</p></div>
 `).join('');
 
-/* switch link */
+/* switch link: only usable in debug mode (hidden from normal visitors) */
+if(new URLSearchParams(location.search).has('debug')){
+  document.getElementById('switchLink').style.display = '';
+}
 document.getElementById('switchLink').addEventListener('click',()=>{
   const other = V==='A'?'B':'A';
-  location.search = '?v='+other;
+  location.search = '?v='+other+'&debug';
 });
 
 /* ---------------- signup capture (local, exportable) ---------------- */
