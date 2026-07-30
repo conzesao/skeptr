@@ -129,7 +129,7 @@
   <div class="topbar">
     <div class="wrap">
       <div class="brand"><span class="dot"></span><span id="brandname">Skeptr</span></div>
-      <div class="variant-badge" id="variantBadge">variant —</div>
+      <div class="variant-badge" id="variantBadge" style="display:none"></div>
     </div>
   </div>
 
@@ -230,7 +230,12 @@ function pickVariant(){
 const V = pickVariant();
 const data = VARIANTS[V];
 
-document.getElementById('variantBadge').textContent = data.badge;
+// variant badge: hidden for normal visitors, shown only with ?debug in the URL (for you)
+if(new URLSearchParams(location.search).has('debug')){
+  const b=document.getElementById('variantBadge');
+  b.textContent = data.badge;
+  b.style.display = '';
+}
 document.getElementById('eyebrow').textContent = data.eyebrow;
 document.getElementById('headline').textContent = data.headline;
 document.getElementById('subline').textContent = data.subline;
