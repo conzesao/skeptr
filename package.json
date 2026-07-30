@@ -1,0 +1,7 @@
+{
+  "name": "second-opinion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Landing page + Resend signup capture for the AI answer fact-checker",
+  "type": "module"
+}

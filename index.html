@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skeptr — check any AI answer before you trust it</title>
+<style>
+  :root{
+    --ink:#0f1b2d;        /* deep ink blue base */
+    --ink-soft:#1e2f47;
+    --paper:#f7f5ef;      /* warm paper */
+    --paper-2:#efece2;
+    --flag:#e8b100;       /* warning yellow — unverified / conflict */
+    --flag-soft:#fbf1c9;
+    --ok:#2f8f5b;         /* verified green */
+    --ok-soft:#dcefe2;
+    --muted:#6b7688;
+    --line:#d9d5c8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Georgia','Times New Roman',serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px}
+
+  /* ---------- top bar ---------- */
+  .topbar{border-bottom:1px solid var(--line);background:var(--paper)}
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:800;letter-spacing:-.02em;font-size:19px;display:flex;align-items:center;gap:10px}
+  .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--flag);box-shadow:0 0 0 4px var(--flag-soft)}
+  .variant-badge{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+
+  /* ---------- hero ---------- */
+  .hero{padding:76px 0 40px}
+  .eyebrow{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:20px}
+  h1{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-weight:800;
+    letter-spacing:-.03em;
+    line-height:1.02;
+    font-size:clamp(38px,7vw,68px);
+    margin-bottom:22px;
+  }
+  .sub{font-size:clamp(18px,2.4vw,22px);color:var(--ink-soft);max-width:640px;margin-bottom:34px}
+
+  /* ---------- signature: annotated answer ---------- */
+  .demo{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:26px 28px;
+    margin:8px 0 40px;
+    box-shadow:0 18px 40px -28px rgba(15,27,45,.4);
+  }
+  .demo-head{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .demo-head .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .demo p{font-size:18px;line-height:1.7;color:var(--ink)}
+  mark.ok{background:var(--ok-soft);color:#155e37;padding:1px 4px;border-radius:4px;border-bottom:2px solid var(--ok)}
+  mark.flag{background:var(--flag-soft);color:#7a5c00;padding:1px 4px;border-radius:4px;border-bottom:2px solid var(--flag)}
+  .legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:7px}
+  .legend i{width:22px;height:0;border-bottom:2px solid;display:inline-block}
+  .legend .g i{border-color:var(--ok)}
+  .legend .y i{border-color:var(--flag)}
+
+  /* ---------- points ---------- */
+  .points{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;padding:14px 0 8px}
+  .point h3{font-family:'Helvetica Neue',Arial,sans-serif;font-size:17px;letter-spacing:-.01em;margin-bottom:8px}
+  .point p{font-size:15.5px;color:var(--ink-soft)}
+  .point .num{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;color:var(--flag);font-weight:800;letter-spacing:.1em;margin-bottom:10px}
+
+  /* ---------- honesty ---------- */
+  .honesty{border-left:3px solid var(--flag);padding:10px 0 10px 18px;margin:38px 0;color:var(--ink-soft);font-style:italic;font-size:17px;max-width:640px}
+
+  /* ---------- signup ---------- */
+  .signup{background:var(--ink);color:var(--paper);border-radius:16px;padding:44px 40px;margin:20px 0 60px}
+  .signup h2{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:800;letter-spacing:-.02em;font-size:clamp(24px,3.4vw,32px);margin-bottom:10px;color:#fff}
+  .signup p.lead{color:#b9c2d1;margin-bottom:24px;max-width:520px}
+  form{display:flex;gap:10px;flex-wrap:wrap;max-width:520px}
+  input[type=email]{
+    flex:1;min-width:220px;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:16px;padding:15px 16px;border-radius:10px;border:1px solid #33465f;
+    background:#0b1626;color:#fff;
+  }
+  input[type=email]::placeholder{color:#6b7688}
+  input[type=email]:focus{outline:2px solid var(--flag);outline-offset:1px;border-color:var(--flag)}
+  button{
+    font-family:'Helvetica Neue',Arial,sans-serif;font-weight:700;font-size:16px;
+    padding:15px 24px;border-radius:10px;border:none;cursor:pointer;
+    background:var(--flag);color:#3a2c00;transition:transform .06s ease, background .2s ease;
+  }
+  button:hover{background:#f0c020}
+  button:active{transform:translateY(1px)}
+  .fineprint{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#8794a6;margin-top:14px}
+  .thanks{display:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#fff;background:#12324f;border:1px solid #2f8f5b;padding:16px 18px;border-radius:10px;margin-top:6px}
+  .thanks.show{display:block}
+
+  /* price micro-test */
+  .pricetest{display:none;margin-top:20px;padding-top:20px;border-top:1px solid #33465f}
+  .pricetest.show{display:block}
+  .pricetest p{font-family:'Helvetica Neue',Arial,sans-serif;color:#dbe2ec;margin-bottom:12px;font-size:16px}
+  .pricebtns{display:flex;gap:10px}
+  .pricebtns button{background:#1e2f47;color:#fff;border:1px solid #33465f}
+  .pricebtns button:hover{background:#294061}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:26px 0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  footer a{color:var(--muted);cursor:pointer;text-decoration:underline}
+
+  /* admin */
+  .admin{position:fixed;bottom:14px;right:14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--muted);cursor:pointer;box-shadow:0 6px 20px -12px rgba(0,0,0,.4)}
+
+  @media (max-width:720px){
+    .points{grid-template-columns:1fr;gap:22px}
+    .hero{padding:52px 0 30px}
+    .signup{padding:32px 22px}
+  }
+  @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap">
+      <div class="brand"><span class="dot"></span><span id="brandname">Skeptr</span></div>
+      <div class="variant-badge" id="variantBadge">variant —</div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="eyebrow" id="eyebrow">Independent AI fact-check</div>
+      <h1 id="headline">Don't trust one AI. Ask them all.</h1>
+      <p class="sub" id="subline">When ChatGPT sounds confident, is it right? We ask the other leading models the same question and show you exactly where they disagree — so you know what to double-check before you rely on it.</p>
+
+      <!-- Signature element: an annotated AI answer -->
+      <div class="demo">
+        <div class="demo-head"><span class="dot"></span> AI answer · checked</div>
+        <p>
+          The Eiffel Tower was completed in <mark class="ok">1889</mark> and stands
+          <mark class="flag">324&nbsp;metres</mark> tall. It was designed by
+          <mark class="ok">Gustave Eiffel's company</mark> and was, at the time,
+          <mark class="flag">the tallest structure ever built by man</mark>.
+        </p>
+        <div class="legend">
+          <span class="g"><i></i> verified across sources</span>
+          <span class="y"><i></i> unconfirmed / models disagree — check this</span>
+        </div>
+      </div>
+
+      <div class="points" id="points"><!-- filled by JS --></div>
+
+      <p class="honesty" id="honesty">We don't claim to know the truth — we show you where the AIs don't agree, so you know where to look.</p>
+    </section>
+
+    <section class="signup" id="signup">
+      <h2>Get early access</h2>
+      <p class="lead">We're building this now. Leave your email and we'll message you once — when the beta opens. No spam, ever.</p>
+      <form id="signupForm">
+        <input type="email" id="email" placeholder="you@email.com" required aria-label="Your email address">
+        <button type="submit">Get early access</button>
+      </form>
+      <p class="fineprint">One email when the beta opens. Nothing else.</p>
+
+      <div class="thanks" id="thanks">Thanks — you're on the list. ✓</div>
+
+      <!-- optional harder willingness-to-pay micro-test -->
+      <div class="pricetest" id="pricetest">
+        <p>Quick question — the beta will likely be <strong>€5/month</strong> for 100 checks. Would you pay for it?</p>
+        <div class="pricebtns">
+          <button data-pay="yes">Yes, I'd pay</button>
+          <button data-pay="maybe">Maybe</button>
+          <button data-pay="no">No, only if free</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <span>Skeptr — an independent check on AI answers.</span>
+    <a id="switchLink">See the other version</a>
+  </footer>
+
+  <div class="admin" id="admin" title="Click to export collected signups">▤ signups: <span id="count">0</span></div>
+
+<script>
+/* ---------------- A/B variant content ---------------- */
+const VARIANTS = {
+  A: {
+    badge:"variant A · disagreement",
+    eyebrow:"Independent AI fact-check",
+    headline:"Don't trust one AI. Ask them all.",
+    subline:"When ChatGPT sounds confident, is it right? We ask the other leading models the same question and show you exactly where they disagree — so you know what to double-check before you rely on it.",
+    honesty:"We don't claim to know the truth — we show you where the AIs don't agree, so you know where to look.",
+    points:[
+      ["01","See the disagreements","Where ChatGPT, Gemini and Claude give different answers, we flag it. Quiet consensus means it's probably solid; conflict means look closer."],
+      ["02","Catch the confident lies","AI states wrong facts with total confidence. We surface the claims that don't hold up across models."],
+      ["03","One click, not three tabs","Stop asking three chatbots and comparing by hand. Paste the answer, get the cross-check in seconds."]
+    ]
+  },
+  B: {
+    badge:"variant B · fact-check",
+    eyebrow:"Independent AI fact-check",
+    headline:"Is your AI answer actually true?",
+    subline:"AI invents facts, fake citations and made-up numbers — and says them with a straight face. Paste any AI answer and we check the concrete claims against real sources, flagging what we couldn't verify.",
+    honesty:"We don't promise certainty — we show you which claims stand up and which you should verify yourself.",
+    points:[
+      ["01","Every claim, checked","Numbers, names, dates, quotes — verified against the live web, with anything we can't confirm clearly marked."],
+      ["02","Spot fake sources instantly","AI loves inventing citations that don't exist. We catch them before you embarrass yourself."],
+      ["03","Independent by design","We're not tied to any AI company, so we've no reason to protect any model's answer — only your interest."]
+    ]
+  }
+};
+
+/* pick variant: ?v=A / ?v=B, else sticky-random 50/50 */
+function pickVariant(){
+  const url = new URLSearchParams(location.search).get('v');
+  if(url && VARIANTS[url.toUpperCase()]) return url.toUpperCase();
+  let v = localStorage.getItem('so_variant');
+  if(!v){ v = Math.random() < 0.5 ? 'A' : 'B'; localStorage.setItem('so_variant', v); }
+  return v;
+}
+
+const V = pickVariant();
+const data = VARIANTS[V];
+
+document.getElementById('variantBadge').textContent = data.badge;
+document.getElementById('eyebrow').textContent = data.eyebrow;
+document.getElementById('headline').textContent = data.headline;
+document.getElementById('subline').textContent = data.subline;
+document.getElementById('honesty').textContent = data.honesty;
+document.getElementById('points').innerHTML = data.points.map(p=>`
+  <div class="point"><div class="num">${p[0]}</div><h3>${p[1]}</h3><p>${p[2]}</p></div>
+`).join('');
+
+/* switch link */
+document.getElementById('switchLink').addEventListener('click',()=>{
+  const other = V==='A'?'B':'A';
+  location.search = '?v='+other;
+});
+
+/* ---------------- signup capture (local, exportable) ---------------- */
+const KEY='so_signups';
+function getSignups(){ try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]} }
+function setCount(){ document.getElementById('count').textContent = getSignups().length; }
+setCount();
+
+document.getElementById('signupForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const email=document.getElementById('email').value.trim();
+  if(!email) return;
+
+  // keep a local copy as a safety net
+  const list=getSignups();
+  list.push({email, variant:V, ts:new Date().toISOString()});
+  localStorage.setItem(KEY, JSON.stringify(list));
+  setCount();
+
+  // send to the serverless function -> Resend
+  try{
+    await fetch('/api/signup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, variant:V})
+    });
+  }catch(err){ /* local copy already saved; ignore network error */ }
+
+  document.getElementById('signupForm').style.display='none';
+  document.getElementById('thanks').classList.add('show');
+  document.getElementById('pricetest').classList.add('show');
+});
+
+/* willingness-to-pay micro-test */
+document.querySelectorAll('.pricebtns button').forEach(b=>{
+  b.addEventListener('click',function(){
+    const answer=this.getAttribute('data-pay');
+    const list=getSignups();
+    let email='';
+    if(list.length){ list[list.length-1].pay=answer; email=list[list.length-1].email; localStorage.setItem(KEY,JSON.stringify(list)); }
+    // send the pay signal too (most valuable data point)
+    try{
+      fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email, variant:V, pay:answer})});
+    }catch(err){}
+    document.getElementById('pricetest').innerHTML='<p style="margin:0">Noted — thank you. We\'ll be in touch. ✓</p>';
+  });
+});
+
+/* admin export: click badge to download CSV of all signups */
+document.getElementById('admin').addEventListener('click',function(){
+  const list=getSignups();
+  if(!list.length){ alert('No signups collected yet on this device.'); return; }
+  const rows=[['email','variant','pay','timestamp'],...list.map(r=>[r.email,r.variant,r.pay||'',r.ts])];
+  const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='skeptr-signups.csv';
+  a.click();
+});
+</script>
+</body>
+</html>
