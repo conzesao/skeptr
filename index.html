@@ -139,13 +139,20 @@
   .thanks{display:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#fff;background:#12324f;border:1px solid #2f8f5b;padding:16px 18px;border-radius:10px;margin-top:6px}
   .thanks.show{display:block}
 
-  /* price micro-test */
-  .pricetest{display:none;margin-top:20px;padding-top:20px;border-top:1px solid #33465f}
-  .pricetest.show{display:block}
-  .pricetest p{font-family:'Helvetica Neue',Arial,sans-serif;color:#dbe2ec;margin-bottom:12px;font-size:16px}
-  .pricebtns{display:flex;gap:10px}
-  .pricebtns button{background:#1e2f47;color:#fff;border:1px solid #33465f}
-  .pricebtns button:hover{background:#294061}
+  /* willingness-to-pay, asked inside the form */
+  .paychoice{border:none;padding:0;margin:4px 0 2px}
+  .paychoice legend{font-family:'Helvetica Neue',Arial,sans-serif;font-size:14.5px;color:#b9c2d1;padding:0;margin-bottom:10px}
+  .segs{display:flex;gap:8px;flex-wrap:wrap}
+  .segs label{cursor:pointer}
+  .segs input{position:absolute;opacity:0;width:0;height:0}
+  .segs span{
+    display:inline-block;font-family:'Helvetica Neue',Arial,sans-serif;font-size:14.5px;
+    padding:9px 14px;border-radius:20px;border:1px solid #33465f;background:#0b1626;color:#dbe2ec;
+    transition:background .15s ease,border-color .15s ease;
+  }
+  .segs label:hover span{background:#16283f}
+  .segs input:checked + span{background:var(--flag);border-color:var(--flag);color:#3a2c00;font-weight:700}
+  .segs input:focus-visible + span{outline:2px solid var(--flag);outline-offset:2px}
 
   /* ---------- footer ---------- */
   footer{border-top:1px solid var(--line);padding:26px 0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
@@ -244,6 +251,16 @@
       <form id="signupForm">
         <textarea id="question" rows="3" aria-label="The question you want checked"
           placeholder="e.g. Which cartridge fits my printer? — anything with a number, a name or a date in it"></textarea>
+
+        <fieldset class="paychoice">
+          <legend>If this were €5/month for 100 checks — would you use it?</legend>
+          <div class="segs">
+            <label><input type="radio" name="pay" value="yes"><span>Yes, I'd pay</span></label>
+            <label><input type="radio" name="pay" value="maybe"><span>Maybe</span></label>
+            <label><input type="radio" name="pay" value="no"><span>Only if free</span></label>
+          </div>
+        </fieldset>
+
         <div class="row">
           <input type="email" id="email" placeholder="you@email.com" required aria-label="Your email address">
           <button type="submit">Send it in</button>
@@ -253,15 +270,6 @@
 
       <div class="thanks" id="thanks">Thanks — we'll be in touch within a day. ✓</div>
 
-      <!-- optional harder willingness-to-pay micro-test -->
-      <div class="pricetest" id="pricetest">
-        <p>Quick question — the beta will likely be <strong>€5/month</strong> for 100 checks. Would you pay for it?</p>
-        <div class="pricebtns">
-          <button data-pay="yes">Yes, I'd pay</button>
-          <button data-pay="maybe">Maybe</button>
-          <button data-pay="no">No, only if free</button>
-        </div>
-      </div>
     </section>
   </main>
 
@@ -346,11 +354,13 @@ document.getElementById('signupForm').addEventListener('submit',async function(e
   e.preventDefault();
   const email=document.getElementById('email').value.trim();
   const question=document.getElementById('question').value.trim();
+  const payEl=document.querySelector('input[name="pay"]:checked');
+  const pay=payEl?payEl.value:'';
   if(!email) return;
 
   // keep a local copy as a safety net
   const list=getSignups();
-  list.push({email, question, variant:V, ts:new Date().toISOString()});
+  list.push({email, question, pay, variant:V, ts:new Date().toISOString()});
   localStorage.setItem(KEY, JSON.stringify(list));
   setCount();
 
@@ -359,29 +369,12 @@ document.getElementById('signupForm').addEventListener('submit',async function(e
     await fetch('/api/signup',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, question, variant:V})
+      body:JSON.stringify({email, question, pay, variant:V})
     });
   }catch(err){ /* local copy already saved; ignore network error */ }
 
   document.getElementById('signupForm').style.display='none';
   document.getElementById('thanks').classList.add('show');
-  document.getElementById('pricetest').classList.add('show');
-});
-
-/* willingness-to-pay micro-test */
-document.querySelectorAll('.pricebtns button').forEach(b=>{
-  b.addEventListener('click',function(){
-    const answer=this.getAttribute('data-pay');
-    const list=getSignups();
-    let email='';
-    if(list.length){ list[list.length-1].pay=answer; email=list[list.length-1].email; localStorage.setItem(KEY,JSON.stringify(list)); }
-    // send the pay signal too (most valuable data point)
-    try{
-      fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email, variant:V, pay:answer})});
-    }catch(err){}
-    document.getElementById('pricetest').innerHTML='<p style="margin:0">Noted — thank you. We\'ll be in touch. ✓</p>';
-  });
 });
 
 /* admin export: click badge to download CSV of all signups */
