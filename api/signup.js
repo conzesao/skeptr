@@ -19,12 +19,17 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { email, variant, pay } = req.body || {};
+    const { email, variant, pay, question } = req.body || {};
 
     // minimal validation
     if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return res.status(400).json({ error: 'Invalid email' });
     }
+
+    // Question is optional. Cap it: nobody needs to paste a whole book, and an
+    // unbounded field is an open door for abuse.
+    const q = typeof question === 'string' ? question.trim().slice(0, 2000) : '';
+    const truncated = typeof question === 'string' && question.trim().length > 2000;
 
     const apiKey = process.env.RESEND_API_KEY;
     const to = process.env.SIGNUP_TO;
@@ -34,13 +39,23 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Server not configured' });
     }
 
-    const subject = `New Skeptr signup — variant ${variant || '?'}`;
+    // Subject makes the inbox triageable at a glance: questions need work,
+    // pay answers don't.
+    const kind = q ? 'QUESTION' : (pay ? `pay: ${pay}` : 'signup');
+    const subject = `Skeptr — ${kind} — variant ${variant || '?'}`;
+
     const text =
-      `New early-access signup\n\n` +
-      `Email:   ${email}\n` +
-      `Variant: ${variant || '-'}\n` +
-      `Pay:     ${pay || '(not answered yet)'}\n` +
-      `Time:    ${new Date().toISOString()}\n`;
+      (q ? `A QUESTION CAME IN — run it and reply.\n\n` : `New early-access signup\n\n`) +
+      `Email:    ${email}\n` +
+      `Variant:  ${variant || '-'}\n` +
+      `Pay:      ${pay || '(not answered yet)'}\n` +
+      `Time:     ${new Date().toISOString()}\n` +
+      (q
+        ? `\n--- QUESTION ---------------------------------------\n${q}\n` +
+          (truncated ? `\n[truncated at 2000 characters]\n` : '') +
+          `----------------------------------------------------\n` +
+          `\nRun:  python skeptr_multi.py "${q.replace(/"/g, "'").slice(0, 300)}" --debug\n`
+        : `\nNo question submitted.\n`);
 
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
