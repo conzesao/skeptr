@@ -14,6 +14,10 @@
     --flag-soft:#fbf1c9;
     --ok:#2f8f5b;         /* verified green */
     --ok-soft:#dcefe2;
+    --bad:#b03a2e;        /* refuted — contradicted by sources */
+    --bad-soft:#f6dedb;
+    --grey:#8a93a3;       /* declined to answer */
+    --grey-soft:#e8eaee;
     --muted:#6b7688;
     --line:#d9d5c8;
   }
@@ -48,7 +52,7 @@
   }
   .sub{font-size:clamp(18px,2.4vw,22px);color:var(--ink-soft);max-width:640px;margin-bottom:34px}
 
-  /* ---------- signature: annotated answer ---------- */
+  /* ---------- signature: three answers, one question ---------- */
   .demo{
     background:#fff;
     border:1px solid var(--line);
@@ -57,16 +61,42 @@
     margin:8px 0 40px;
     box-shadow:0 18px 40px -28px rgba(15,27,45,.4);
   }
-  .demo-head{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
-  .demo-head .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
-  .demo p{font-size:18px;line-height:1.7;color:var(--ink)}
-  mark.ok{background:var(--ok-soft);color:#155e37;padding:1px 4px;border-radius:4px;border-bottom:2px solid var(--ok)}
-  mark.flag{background:var(--flag-soft);color:#7a5c00;padding:1px 4px;border-radius:4px;border-bottom:2px solid var(--flag)}
-  .legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted)}
-  .legend span{display:flex;align-items:center;gap:7px}
-  .legend i{width:22px;height:0;border-bottom:2px solid;display:inline-block}
-  .legend .g i{border-color:var(--ok)}
-  .legend .y i{border-color:var(--flag)}
+  .demo-head{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .demo-head .dot{width:8px;height:8px;border-radius:50%;background:var(--flag)}
+  .demo-q{font-size:19px;line-height:1.5;padding:0 0 20px;border-bottom:1px solid var(--line);margin-bottom:20px}
+  .demo-q b{font-weight:400;background:var(--flag-soft);padding:1px 5px;border-radius:4px}
+
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{border:1px solid var(--line);border-radius:11px;padding:16px 16px 14px;background:var(--paper);display:flex;flex-direction:column;gap:9px}
+  .card.r{border-color:#e3b6b0;background:#fdf7f6}
+  .card.y{border-color:#e6d49a;background:#fffdf5}
+  .card.n{border-color:var(--line)}
+  .card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-family:'Helvetica Neue',Arial,sans-serif}
+  .who{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .chip{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap}
+  .chip.r{background:var(--bad-soft);color:#7d2419}
+  .chip.y{background:var(--flag-soft);color:#7a5c00}
+  .chip.n{background:var(--grey-soft);color:#5b6472}
+  .ans{font-size:16px;line-height:1.5}
+  .ans code{font-family:'SFMono-Regular',Consolas,monospace;font-size:15px;background:#fff;border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+  .why{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13.5px;line-height:1.5;color:var(--ink-soft);margin-top:auto;padding-top:8px;border-top:1px dashed var(--line)}
+
+  .resolution{margin-top:20px;padding-top:18px;border-top:1px solid var(--line);font-size:16px;line-height:1.6;color:var(--ink-soft)}
+  .resolution strong{color:var(--ink)}
+  .resolution .swap{background:var(--bad-soft);padding:0 4px;border-radius:3px;font-weight:700;color:#7d2419}
+  .runnote{font-family:'Helvetica Neue',Arial,sans-serif;font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+
+  /* ---------- verdict states ---------- */
+  .states{border:1px solid var(--line);border-radius:14px;padding:22px 26px;margin:0 0 40px;background:var(--paper-2)}
+  .states h3{font-family:'Helvetica Neue',Arial,sans-serif;font-size:15px;letter-spacing:-.01em;margin-bottom:4px}
+  .states .intro{font-size:15.5px;color:var(--ink-soft);margin-bottom:16px;max-width:620px}
+  .statelist{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 26px}
+  .state{display:flex;gap:10px;align-items:baseline;font-size:15px;color:var(--ink-soft)}
+  .state b{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:20px;white-space:nowrap}
+  .s-ok b{background:var(--ok-soft);color:#155e37}
+  .s-con b{background:var(--flag-soft);color:#7a5c00}
+  .s-unv b{background:var(--grey-soft);color:#5b6472}
+  .s-fp b{background:var(--bad-soft);color:#7d2419}
 
   /* ---------- points ---------- */
   .points{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;padding:14px 0 8px}
@@ -81,7 +111,15 @@
   .signup{background:var(--ink);color:var(--paper);border-radius:16px;padding:44px 40px;margin:20px 0 60px}
   .signup h2{font-family:'Helvetica Neue',Arial,sans-serif;font-weight:800;letter-spacing:-.02em;font-size:clamp(24px,3.4vw,32px);margin-bottom:10px;color:#fff}
   .signup p.lead{color:#b9c2d1;margin-bottom:24px;max-width:520px}
-  form{display:flex;gap:10px;flex-wrap:wrap;max-width:520px}
+  form{display:flex;flex-direction:column;gap:10px;max-width:560px}
+  form .row{display:flex;gap:10px;flex-wrap:wrap}
+  textarea#question{
+    font-family:'Helvetica Neue',Arial,sans-serif;
+    font-size:16px;line-height:1.5;padding:14px 16px;border-radius:10px;
+    border:1px solid #33465f;background:#0b1626;color:#fff;resize:vertical;
+  }
+  textarea#question::placeholder{color:#6b7688}
+  textarea#question:focus{outline:2px solid var(--flag);outline-offset:1px;border-color:var(--flag)}
   input[type=email]{
     flex:1;min-width:220px;
     font-family:'Helvetica Neue',Arial,sans-serif;
@@ -118,6 +156,11 @@
 
   @media (max-width:720px){
     .points{grid-template-columns:1fr;gap:22px}
+    .cards{grid-template-columns:1fr;gap:12px}
+    .statelist{grid-template-columns:1fr;gap:12px}
+    .demo{padding:20px 18px}
+    .states{padding:18px}
+    .why{margin-top:0}
     .hero{padding:52px 0 30px}
     .signup{padding:32px 22px}
   }
@@ -139,36 +182,76 @@
       <h1 id="headline">Don't trust one AI. Ask them all.</h1>
       <p class="sub" id="subline">When ChatGPT sounds confident, is it right? We ask the other leading models the same question and show you exactly where they disagree — so you know what to double-check before you rely on it.</p>
 
-      <!-- Signature element: an annotated AI answer -->
+      <!-- Signature element: one real run, three providers -->
       <div class="demo">
-        <div class="demo-head"><span class="dot"></span> AI answer · checked</div>
-        <p>
-          The Eiffel Tower was completed in <mark class="ok">1889</mark> and stands
-          <mark class="flag">324&nbsp;metres</mark> tall. It was designed by
-          <mark class="ok">Gustave Eiffel's company</mark> and was, at the time,
-          <mark class="flag">the tallest structure ever built by man</mark>.
-        </p>
-        <div class="legend">
-          <span class="g"><i></i> verified across sources</span>
-          <span class="y"><i></i> unconfirmed / models disagree — check this</span>
+        <div class="demo-head"><span class="dot"></span> One real run · same question to three providers</div>
+
+        <p class="demo-q">"What is the OEM part number for the water inlet valve on a Whirlpool <b>WRF535SMHZ</b> refrigerator?"</p>
+
+        <div class="cards">
+          <div class="card r">
+            <div class="card-top"><span class="who">Model A</span><span class="chip r">Refuted</span></div>
+            <p class="ans">"The primary OEM part number is <code>W11165546</code>." — plus superseded numbers, revision suffixes, and where to find the rating plate.</p>
+            <p class="why">W11165546 is a <strong>washing-machine</strong> inlet valve. The most detailed answer was the wrong one.</p>
+          </div>
+
+          <div class="card y">
+            <div class="card-top"><span class="who">Model B</span><span class="chip y">Unverified</span></div>
+            <p class="ans">"The part number is typically <code>W11168740</code>. It's always good to verify with the manufacturer."</p>
+            <p class="why">That valve is real — but no source confirms it fits this model. Plausible, unproven.</p>
+          </div>
+
+          <div class="card n">
+            <div class="card-top"><span class="who">Model C</span><span class="chip n">Declined</span></div>
+            <p class="ans">"I don't have the part number for that model. Check the parts diagram, or read the number off the valve itself."</p>
+            <p class="why">Refused to guess — and on this question that was the right call.</p>
+          </div>
         </div>
+
+        <p class="resolution">
+          <strong>What the sources actually say:</strong> no manufacturer source lists a valve for the
+          WRF535S<span class="swap">M</span>HZ. The part Google puts at the top, WPW10420083, belongs to the
+          WRF535S<span class="swap">W</span>HZ — one letter apart, different appliance. Order it and you wait a
+          week for a part that doesn't fit.
+        </p>
+
+        <p class="runnote">
+          Single run, July 2026, on ChatGPT, Claude and Gemini. We don't say which was which: the same
+          question on another day produces different answers, and one run isn't a verdict on anyone's model.
+          That variation is the point.
+        </p>
       </div>
 
       <div class="points" id="points"><!-- filled by JS --></div>
+
+      <section class="states">
+        <h3>Four answers, including two nobody else gives you</h3>
+        <p class="intro">A checker that always reaches a verdict is a checker that invents them. Skeptr is allowed to say it doesn't know.</p>
+        <div class="statelist">
+          <div class="state s-ok"><b>Verified</b><span>Authoritative sources agree.</span></div>
+          <div class="state s-con"><b>Contested</b><span>Good sources disagree with each other. Both sides shown, no winner picked.</span></div>
+          <div class="state s-unv"><b>Unverified</b><span>Nothing solid found. Not the same as false.</span></div>
+          <div class="state s-fp"><b>False premise</b><span>The question itself assumed something that didn't happen.</span></div>
+        </div>
+      </section>
 
       <p class="honesty" id="honesty">We don't claim to know the truth — we show you where the AIs don't agree, so you know where to look.</p>
     </section>
 
     <section class="signup" id="signup">
-      <h2>Get early access</h2>
-      <p class="lead">We're building this now. Leave your email and we'll message you once — when the beta opens. No spam, ever.</p>
+      <h2>Have something checked</h2>
+      <p class="lead">Paste a question you're unsure about. We run the first ones by hand and email you what the models said and what the sources actually support. No spam, ever.</p>
       <form id="signupForm">
-        <input type="email" id="email" placeholder="you@email.com" required aria-label="Your email address">
-        <button type="submit">Get early access</button>
+        <textarea id="question" rows="3" aria-label="The question you want checked"
+          placeholder="e.g. Which cartridge fits my printer? — anything with a number, a name or a date in it"></textarea>
+        <div class="row">
+          <input type="email" id="email" placeholder="you@email.com" required aria-label="Your email address">
+          <button type="submit">Send it in</button>
+        </div>
       </form>
-      <p class="fineprint">One email when the beta opens. Nothing else.</p>
+      <p class="fineprint">Question optional. Leave it blank and we'll just tell you when the beta opens.</p>
 
-      <div class="thanks" id="thanks">Thanks — you're on the list. ✓</div>
+      <div class="thanks" id="thanks">Thanks — we'll be in touch within a day. ✓</div>
 
       <!-- optional harder willingness-to-pay micro-test -->
       <div class="pricetest" id="pricetest">
@@ -201,17 +284,17 @@ const VARIANTS = {
     points:[
       ["01","See the disagreements","Where ChatGPT, Gemini and Claude give different answers, we flag it. Quiet consensus means it's probably solid; conflict means look closer."],
       ["02","Catch the confident lies","AI states wrong facts with total confidence. We surface the claims that don't hold up across models."],
-      ["03","One click, not three tabs","Stop asking three chatbots and comparing by hand. Paste the answer, get the cross-check in seconds."]
+      ["03","No vendor grades itself","The model that settles the disagreement never sees who said what, and it's never one of the models being compared."]
     ]
   },
   B: {
     badge:"variant B · fact-check",
     eyebrow:"Independent AI fact-check",
     headline:"Is your AI answer actually true?",
-    subline:"AI invents facts, fake citations and made-up numbers — and says them with a straight face. Paste any AI answer and we check the concrete claims against real sources, flagging what we couldn't verify.",
+    subline:"AI invents facts, fake citations and made-up numbers — and says them with a straight face. Ask us anything with a number, a name or a date in it, and we'll show you which claims hold up against real sources and which don't.",
     honesty:"We don't promise certainty — we show you which claims stand up and which you should verify yourself.",
     points:[
-      ["01","Every claim, checked","Numbers, names, dates, quotes — verified against the live web, with anything we can't confirm clearly marked."],
+      ["01","Claims, weighed by source","Numbers, names, dates, quotes — checked against the live web. A manufacturer's page counts. A forum post doesn't."],
       ["02","Spot fake sources instantly","AI loves inventing citations that don't exist. We catch them before you embarrass yourself."],
       ["03","Independent by design","We're not tied to any AI company, so we've no reason to protect any model's answer — only your interest."]
     ]
@@ -262,11 +345,12 @@ setCount();
 document.getElementById('signupForm').addEventListener('submit',async function(e){
   e.preventDefault();
   const email=document.getElementById('email').value.trim();
+  const question=document.getElementById('question').value.trim();
   if(!email) return;
 
   // keep a local copy as a safety net
   const list=getSignups();
-  list.push({email, variant:V, ts:new Date().toISOString()});
+  list.push({email, question, variant:V, ts:new Date().toISOString()});
   localStorage.setItem(KEY, JSON.stringify(list));
   setCount();
 
@@ -275,7 +359,7 @@ document.getElementById('signupForm').addEventListener('submit',async function(e
     await fetch('/api/signup',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email, variant:V})
+      body:JSON.stringify({email, question, variant:V})
     });
   }catch(err){ /* local copy already saved; ignore network error */ }
 
@@ -304,7 +388,7 @@ document.querySelectorAll('.pricebtns button').forEach(b=>{
 document.getElementById('admin').addEventListener('click',function(){
   const list=getSignups();
   if(!list.length){ alert('No signups collected yet on this device.'); return; }
-  const rows=[['email','variant','pay','timestamp'],...list.map(r=>[r.email,r.variant,r.pay||'',r.ts])];
+  const rows=[['email','question','variant','pay','timestamp'],...list.map(r=>[r.email,r.question||'',r.variant,r.pay||'',r.ts])];
   const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');
