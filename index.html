@@ -4,6 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skeptr — check any AI answer before you trust it</title>
+
+<!-- Link-Vorschau (Reddit, Slack, WhatsApp, X). Ohne diese Tags zeigt ein
+     geteilter Link nur die nackte URL — auf Reddit ein toter Post.
+     og:url und og:image auf die echte Domain anpassen, sobald sie steht. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Skeptr">
+<meta property="og:url" content="https://skeptr.vercel.app/">
+<meta property="og:title" content="Skeptr — an independent check on AI answers">
+<meta property="og:description" content="Same question, three AI providers. Where they disagree, something is probably invented — and we resolve it against real sources. Allowed to say &quot;contested&quot; and &quot;unverified&quot;.">
+<meta property="og:image" content="https://skeptr.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Skeptr — an independent check on AI answers">
+<meta name="twitter:description" content="Same question, three AI providers. Where they disagree, something is probably invented.">
+<meta name="twitter:image" content="https://skeptr.vercel.app/og.png">
+<meta name="description" content="Same question, three AI providers. Where they disagree, something is probably invented — and we resolve it against real sources.">
+
 <style>
   :root{
     --ink:#0f1b2d;        /* deep ink blue base */
@@ -142,6 +160,11 @@
   .fineprint{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#8794a6;margin-top:14px}
   .thanks{display:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:17px;color:#fff;background:#12324f;border:1px solid #2f8f5b;padding:16px 18px;border-radius:10px;margin-top:6px}
   .thanks.show{display:block}
+  /* Fehlerfall: die Frage kam NICHT an. Muss sichtbar anders aussehen als
+     die Bestaetigung — sonst glaubt der Nutzer, es sei alles gut. */
+  .sendfail{display:none;font-family:'Helvetica Neue',Arial,sans-serif;font-size:15.5px;line-height:1.55;color:#fff;background:#3a1a16;border:1px solid #b03a2e;padding:16px 18px;border-radius:10px;margin-top:10px}
+  .sendfail.show{display:block}
+  .sendfail a{color:var(--flag)}
 
   /* willingness-to-pay, asked inside the form */
   .paychoice{border:none;padding:0;margin:4px 0 2px}
@@ -162,8 +185,12 @@
   footer{border-top:1px solid var(--line);padding:26px 0;font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
   footer a{color:var(--muted);cursor:pointer;text-decoration:underline}
 
-  /* admin */
-  .admin{position:fixed;bottom:14px;right:14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--muted);cursor:pointer;box-shadow:0 6px 20px -12px rgba(0,0,0,.4)}
+  /* admin — standardmaessig UNSICHTBAR. Es zeigt den localStorage des
+     Besuchers, nicht deine Anmeldungen: fuer ihn stand da immer "0".
+     Ein Zaehler auf Null als erster Eindruck ist das Gegenteil von dem,
+     was die Seite behaupten will. Nur mit ?debug sichtbar. */
+  .admin{display:none;position:fixed;bottom:14px;right:14px;font-family:'Helvetica Neue',Arial,sans-serif;font-size:12px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:var(--muted);cursor:pointer;box-shadow:0 6px 20px -12px rgba(0,0,0,.4)}
+  .admin.show{display:block}
 
   @media (max-width:720px){
     .points{grid-template-columns:1fr;gap:22px}
@@ -273,6 +300,10 @@
       <p class="fineprint">Question optional. Leave it blank and we'll just tell you when the beta opens.</p>
 
       <div class="thanks" id="thanks">Thanks — we'll be in touch within a day. ✓</div>
+      <div class="sendfail" id="sendfail">
+        <strong>That didn't send.</strong> Something on our side failed — your question did not reach us.
+        Please mail it straight to <a href="mailto:hello@skeptr.app">hello@skeptr.app</a> and we'll run it by hand.
+      </div>
 
     </section>
   </main>
@@ -353,6 +384,12 @@ const KEY='so_signups';
 function getSignups(){ try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]} }
 function setCount(){ document.getElementById('count').textContent = getSignups().length; }
 setCount();
+// Badge nur fuer dich: ?debug an die URL haengen.
+if(new URLSearchParams(location.search).has('debug')){
+  document.getElementById('admin').classList.add('show');
+}
+
+const DEBUG = new URLSearchParams(location.search).has('debug');
 
 document.getElementById('signupForm').addEventListener('submit',async function(e){
   e.preventDefault();
@@ -362,23 +399,42 @@ document.getElementById('signupForm').addEventListener('submit',async function(e
   const pay=payEl?payEl.value:'';
   if(!email) return;
 
+  const btn=this.querySelector('button[type=submit]');
+  if(btn.disabled) return;                 // Doppelklick = zwei Mails
+  const label=btn.textContent;
+  btn.disabled=true; btn.textContent='Sending…';
+  document.getElementById('sendfail').classList.remove('show');
+
   // keep a local copy as a safety net
   const list=getSignups();
   list.push({email, question, pay, variant:V, ts:new Date().toISOString()});
   localStorage.setItem(KEY, JSON.stringify(list));
   setCount();
 
-  // send to the serverless function -> Resend
+  // send to the serverless function -> Resend.
+  // Frueher wurde die Bestaetigung IMMER gezeigt, auch wenn der Versand
+  // scheiterte: der Nutzer glaubte, seine Frage sei raus, und wir haetten
+  // nie davon erfahren. Die lokale Kopie liegt auf SEINEM Geraet und nuetzt
+  // uns nichts. Bestaetigen nur, wenn der Server wirklich ok gemeldet hat.
+  let ok=false, detail='';
   try{
-    await fetch('/api/signup',{
+    const r = await fetch('/api/signup',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email, question, pay, variant:V})
     });
-  }catch(err){ /* local copy already saved; ignore network error */ }
+    ok = r.ok;
+    if(!ok) detail = 'HTTP '+r.status+' '+(await r.text()).slice(0,200);
+  }catch(err){ detail = String(err); }
 
-  document.getElementById('signupForm').style.display='none';
-  document.getElementById('thanks').classList.add('show');
+  if(ok){
+    document.getElementById('signupForm').style.display='none';
+    document.getElementById('thanks').classList.add('show');
+  }else{
+    btn.disabled=false; btn.textContent=label;   // erneuter Versuch moeglich
+    document.getElementById('sendfail').classList.add('show');
+    if(DEBUG) console.error('[skeptr] signup failed:', detail);
+  }
 });
 
 /* admin export: click badge to download CSV of all signups */
