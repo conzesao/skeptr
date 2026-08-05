@@ -283,12 +283,18 @@
         <textarea id="question" rows="3" aria-label="The question you want checked"
           placeholder="e.g. Which cartridge fits my printer? — anything with a number, a name or a date in it"></textarea>
 
+        <!-- Kein Abo: ein Abo misst, ob der Bedarf WIEDERKEHRT — und genau das
+             ist noch unbekannt. Wer dreimal im Jahr etwas prueft, sagt zu
+             "5 €/Monat" nein und meint "nicht monatlich", nicht "nichts wert".
+             Die dritte Pille war frueher "Only if free" und warf zwei ver-
+             schiedene Leute zusammen: zu teuer vs. brauche ich nicht. Genau
+             die Trennung, die als offene Frage im Master stand. -->
         <fieldset class="paychoice">
-          <legend>If this were €5/month for 25 checks — would you use it?</legend>
+          <legend>10 checks for €15, paid once — no subscription. Would you buy that?</legend>
           <div class="segs">
-            <label><input type="radio" name="pay" value="yes"><span>Yes, I'd pay</span></label>
-            <label><input type="radio" name="pay" value="maybe"><span>Maybe</span></label>
-            <label><input type="radio" name="pay" value="no"><span>Only if free</span></label>
+            <label><input type="radio" name="pay" value="yes"><span>Yes</span></label>
+            <label><input type="radio" name="pay" value="cheaper"><span>Only cheaper</span></label>
+            <label><input type="radio" name="pay" value="never"><span>Wouldn't pay at all</span></label>
           </div>
         </fieldset>
 
